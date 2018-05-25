@@ -1,4 +1,6 @@
 #include <string>
+#include <thread>
+#include <chrono>
 #include <iostream>
 #include <set>
 #include <sstream>
@@ -314,9 +316,11 @@ void initGraphs(Graph& G1, Graph& G2, ArgumentParser& args) {
 	
     if (updateG1 || updateG2)
     {
+#ifdef REINDEX
         // Method #3 of locking
         Timer tReIndex;
 	    cout << "Reindexing graph 1..." << endl;
+
         tReIndex.start();
         if(args.bools["-nodes-have-types"]){
             G1.reIndexGraph(G1.getNodeTypes_ReIndexMap());
@@ -325,6 +329,7 @@ void initGraphs(Graph& G1, Graph& G2, ArgumentParser& args) {
             G1.reIndexGraph(G1.getLocking_ReIndexMap());
         }
         cout << "Done reIndexGraph G1 (" << tReIndex.elapsedString() << ")" << endl;
+#endif
         /*double maxSize = args.doubles["-maxGraphletSize"];
         //int maxSize2;
         //stringstream convert(maxS
@@ -336,9 +341,13 @@ void initGraphs(Graph& G1, Graph& G2, ArgumentParser& args) {
         Timer tSerialize;
         cout << "Serializing graphs..." << endl;
         tSerialize.start();
+        std::this_thread::sleep_for (std::chrono::seconds(1));
         Graph::serializeGraph(G1, G1.getName(), G1.nodesHaveTypesEnabled, usingLocks);
+        std::this_thread::sleep_for (std::chrono::seconds(1));
         G1.serializeMap();
+        std::this_thread::sleep_for (std::chrono::seconds(1));
         Graph::serializeGraph(G2, G2.getName(), G2.nodesHaveTypesEnabled, usingLocks);
+        std::this_thread::sleep_for (std::chrono::seconds(1));
         G2.serializeMap();
         cout << "Done serializing Graphs (" << tSerialize.elapsedString() << ")" << endl;
     }
@@ -357,6 +366,5 @@ void initGraphs(Graph& G1, Graph& G2, ArgumentParser& args) {
     if (G1.getNumEdges() == 0 or G2.getNumEdges() == 0) {
         throw runtime_error("One of the networks has 0 edges");
     }
-
     cout << "Total time for loading graphs (" << T.elapsedString() << ")" << endl;
 }
